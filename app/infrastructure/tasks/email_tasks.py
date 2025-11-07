@@ -4,7 +4,7 @@ from typing import Optional
 from celery import Task
 from app.core.celery_app import celery_app
 from app.domain.entities import EmailMessage
-from app.infrastructure.email.smtp_client import SMTPClient
+from app.infrastructure.email.mail_client import send_email
 from app.utils.logger import logger
 
 
@@ -62,8 +62,7 @@ def send_email_task(
         )
 
         # Envia e-mail usando cliente SMTP
-        smtp_client = SMTPClient()
-        success = smtp_client.send_email(message)
+        success = send_email(message)
 
         if success:
             logger.info(f"E-mail enviado com sucesso para {to} (task_id: {self.request.id})")
@@ -72,10 +71,35 @@ def send_email_task(
                 "to": to,
                 "task_id": self.request.id,
             }
-        else:
-            logger.error(f"Falha ao enviar e-mail para {to} (task_id: {self.request.id})")
-            raise Exception(f"Falha ao enviar e-mail para {to}")
+
+        error_message = f"Falha ao enviar e-mail para {to}"
+        failure_meta = {
+            "status": "failed",
+            "error": error_message,
+            "task_id": self.request.id,
+            "to": to,
+        }
+        logger.error(f"{error_message} (task_id: {self.request.id})")
+        self.update_state(  # type: ignore[attr-defined]
+            state="FAILURE",
+            meta=failure_meta,
+        )
+        raise Exception(failure_meta)
 
     except Exception as e:
-        logger.error(f"Erro na tarefa de envio para {to}: {e}")
-        raise
+        error_message = f"Erro na tarefa de envio para {to}: {e}"
+        failure_meta = {
+            "status": "failed",
+            "error": str(e),
+            "task_id": getattr(self.request, "id", None),
+            "to": to,
+        }
+        logger.error(error_message)
+        try:
+            self.update_state(  # type: ignore[attr-defined]
+                state="FAILURE",
+                meta=failure_meta,
+            )
+        except Exception:  # pragma: no cover - evitar que update_state oculte erro original
+            pass
+        raise Exception(failure_meta)

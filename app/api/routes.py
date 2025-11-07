@@ -102,7 +102,12 @@ async def get_task_status(task_id: str) -> TaskStatusResponse:
             if task_result.successful():
                 response_data["result"] = task_result.result
             else:
-                response_data["error"] = str(task_result.info)
+                info = task_result.info
+                if isinstance(info, dict):
+                    response_data["result"] = info
+                    response_data["error"] = info.get("error")
+                elif info:
+                    response_data["error"] = str(info)
 
         return TaskStatusResponse(**response_data)
 
