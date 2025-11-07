@@ -17,6 +17,7 @@ aiosmtplib==3.0.1
 
 # Utilitários
 python-dotenv==1.0.0
+typing_extensions>=4.8.0
 
 # Testes
 pytest==7.4.3

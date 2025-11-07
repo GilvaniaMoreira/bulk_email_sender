@@ -67,6 +67,9 @@ async def send_emails(request: SendEmailsRequest) -> SendEmailsResponse:
             total_emails=len(valid_emails),
         )
 
+    except HTTPException:
+        # Propaga erros gerados intencionalmente (ex.: validação)
+        raise
     except Exception as e:
         logger.error(f"Erro ao criar tarefas de envio: {e}")
         raise HTTPException(

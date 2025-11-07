@@ -87,7 +87,3 @@ class SMTPClient:
         except Exception as e:
             logger.error(f"Erro inesperado ao enviar e-mail para {message.to}: {e}")
             return False
-
-
-# Instância global do cliente SMTP
-smtp_client = SMTPClient()

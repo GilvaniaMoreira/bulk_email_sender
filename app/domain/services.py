@@ -1,6 +1,8 @@
 """Serviços de domínio (regras de negócio puras)."""
 
 from typing import List
+from email_validator import EmailNotValidError, validate_email as validate_email_lib
+
 from app.domain.entities import EmailMessage, EmailCampaign
 from app.utils.logger import logger
 
@@ -9,7 +11,7 @@ class EmailService:
     """Serviço de domínio para validação e processamento de e-mails."""
 
     @staticmethod
-    def validate_email(email: str) -> bool:
+    def validate_email(email: str) -> str | None:
         """
         Valida se um e-mail tem formato válido.
 
@@ -17,23 +19,14 @@ class EmailService:
             email: Endereço de e-mail a validar
 
         Returns:
-            True se válido, False caso contrário
+            E-mail normalizado se válido, None caso contrário
         """
-        if not email or "@" not in email:
-            return False
-
-        parts = email.split("@")
-        if len(parts) != 2:
-            return False
-
-        local, domain = parts
-        if not local or not domain:
-            return False
-
-        if "." not in domain:
-            return False
-
-        return True
+        try:
+            result = validate_email_lib(email, check_deliverability=False)
+            return result.normalized
+        except EmailNotValidError as exc:
+            logger.debug(f"Validação de e-mail falhou para {email}: {exc}")
+            return None
 
     @staticmethod
     def filter_valid_emails(emails: List[str]) -> List[str]:
@@ -50,8 +43,9 @@ class EmailService:
         invalid_emails = []
 
         for email in emails:
-            if EmailService.validate_email(email):
-                valid_emails.append(email)
+            normalized_email = EmailService.validate_email(email)
+            if normalized_email:
+                valid_emails.append(normalized_email)
             else:
                 invalid_emails.append(email)
                 logger.warning(f"E-mail inválido ignorado: {email}")

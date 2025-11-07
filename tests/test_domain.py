@@ -38,10 +38,10 @@ def test_email_campaign_creation():
 
 def test_email_service_validate_email():
     """Testa validação de e-mail."""
-    assert EmailService.validate_email("test@example.com") is True
-    assert EmailService.validate_email("invalid") is False
-    assert EmailService.validate_email("invalid@") is False
-    assert EmailService.validate_email("@example.com") is False
+    assert EmailService.validate_email("test@example.com") == "test@example.com"
+    assert EmailService.validate_email("invalid") is None
+    assert EmailService.validate_email("invalid@") is None
+    assert EmailService.validate_email("@example.com") is None
 
 
 def test_email_service_filter_valid_emails():
