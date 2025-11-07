@@ -31,7 +31,7 @@ SMTP_PASS=sua_senha_app
 SMTP_USE_TLS=true
 ```
 
-**Nota para Gmail:** Você precisará usar uma [Senha de App](https://support.google.com/accounts/answer/185833) ao invés da senha normal da conta.
+Se estiver usando Mailtrap ou outro SMTP de testes, substitua as variáveis acima pelos valores fornecidos pelo serviço (host, porta, usuário e senha). Recomenda-se criar uma conta Mailtrap e utilizar as credenciais do inbox de sandbox para validar os envios sem depender de provedores de e-mail reais.
 
 ### 2. Executar com Docker Compose
 
@@ -46,51 +46,7 @@ Isso irá subir os seguintes serviços:
 - **Celery Worker**: Processa tarefas em background
 - **Flower**: Monitoramento de tarefas em `http://localhost:5555`
 
-### 3. Executar localmente (sem Docker)
 
-#### Instalar dependências
-
-```bash
-pip install -r requirements.txt
-```
-
-#### Iniciar Redis
-
-```bash
-# Com Docker
-docker run -d -p 6379:6379 redis:7-alpine
-
-# Ou instale e inicie localmente
-```
-
-#### Configurar variáveis de ambiente
-
-Crie um arquivo `.env` ou exporte as variáveis:
-
-```bash
-export SMTP_HOST=smtp.gmail.com
-export SMTP_PORT=587
-export SMTP_USER=seu_email@gmail.com
-export SMTP_PASS=sua_senha_app
-export SMTP_USE_TLS=true
-```
-
-#### Iniciar serviços
-
-**Terminal 1 - API:**
-```bash
-uvicorn app.main:app --reload
-```
-
-**Terminal 2 - Celery Worker:**
-```bash
-celery -A app.core.celery_app worker --loglevel=info
-```
-
-**Terminal 3 - Flower (opcional):**
-```bash
-celery -A app.core.celery_app flower --port=5555
-```
 
 ## Documentação da API
 
@@ -184,7 +140,7 @@ pytest tests/
 
 | Variável | Descrição | Padrão |
 |----------|-----------|--------|
-| `SMTP_HOST` | Servidor SMTP | `smtp.gmail.com` |
+| `SMTP_HOST` | Servidor SMTP | `smtp.mail.com` |
 | `SMTP_PORT` | Porta SMTP | `587` |
 | `SMTP_USER` | Usuário SMTP | - |
 | `SMTP_PASS` | Senha SMTP | - |
@@ -250,27 +206,5 @@ status = requests.get(f"http://localhost:8000/api/v1/task-status/{task_id}")
 print(status.json())
 ```
 
-## Melhorias Futuras
-
-- [ ] Integração com SendGrid, Mailgun, AWS SES
-- [ ] Agendamento de campanhas com Celery Beat
-- [ ] Banco de dados para histórico de envios (PostgreSQL)
-- [ ] Templates de e-mail (Jinja2)
-- [ ] Suporte a anexos
-- [ ] Rate limiting
-- [ ] Autenticação e autorização (JWT)
-- [ ] Dashboard web para gerenciamento
-- [ ] Métricas e analytics (Prometheus)
-- [ ] Suporte a HTML e e-mails ricos
-
-## Licença
-
-Este projeto é open source e está disponível sob a licença MIT.
-
-## Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-
----
 
 Desenvolvido com FastAPI, Celery e Redis
